@@ -5,6 +5,7 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.ibatis.annotations.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,11 +20,14 @@ import cn.cfg.SpringBootDemoWeb.model.User;
 * @author 柴方贵
 * @version 创建时间：2022年11月3日 下午3:24:58
 */
-@Controller   //请求不返回到html页面,而是返回到主体
+@Controller   //@rescontroller请求不返回到html页面,而是返回到主体
 public class hiController {
 	@Autowired
 	UserMapper usermapper;
 	@GetMapping("/register")  //请求映射,浏览器中请求的路径
+	public String reg() {
+		return "register";
+	}
 	@RequestMapping("/register")
 	public String register(HttpServletRequest request,Map<String,Object> map) {
 		System.out.println("request的信息是:"+request);
@@ -43,12 +47,24 @@ public class hiController {
 			return "register";
 		}else {
 			usermapper.adduser(user);
-			return "register";
+			return "login";
 		}
 
 	}
-	
-	@GetMapping("/getuser")
+	@RequestMapping("/deleteuser")
+	public String deleteuser(HttpServletRequest request,Map<String ,Object> map) {
+		String username = request.getParameter("username");
+		User getuser = usermapper.getUser(username);
+		if (!(getuser==null)){
+			usermapper.deleteUser(username);
+			map.put("msgdelete","the user has been deleted");
+			return "login";
+		}else {
+			map.put("msgdelete","the user is not found");
+			return "register";
+		}
+		//return null;
+	}
 	@RequestMapping("/getuser")
 	public String getuser(HttpServletRequest request,Map<String ,Object> map) {
 		String username = request.getParameter("username");
@@ -61,5 +77,29 @@ public class hiController {
 			return "register";
 		}
 	}
-	
+	@RequestMapping("updateuser")
+	public String updateuser(HttpServletRequest request,Map<String ,Object> map) {
+		String username = request.getParameter("username");
+		String password = request.getParameter("password");
+		User updateuser = usermapper.getUser(username);
+		if(!(updateuser==null)) {
+			usermapper.updatepassword(username,password);
+			map.put("msgupdate","the password has been updated");
+			return "login";
+		}else {
+			map.put("msgupdate","the user is not a legal user");
+			return "login";
+		}
+		
+	}
+	@RequestMapping("/login")
+	public String login(HttpServletRequest request,Map<String,Object> map) {
+		String username = request.getParameter("username");
+		String password = request.getParameter("password");
+		User loginuser = usermapper.login(username,password);
+		System.out.println(loginuser);
+		map.put("msglogin","the user "+ loginuser+" login");
+		return "login";
+		
+	}
 }
